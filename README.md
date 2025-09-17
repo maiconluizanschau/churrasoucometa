@@ -1,4 +1,4 @@
-# Churras do Bonato — Next.js (Tailwind + Framer Motion)
+# Churras VS Cometa — Next.js (Tailwind + Framer Motion)
 
 Projeto pronto para rodar localmente.
 
