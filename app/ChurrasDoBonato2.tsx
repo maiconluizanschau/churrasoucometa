@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flame,
@@ -17,6 +17,9 @@ import {
   Megaphone,
   HardHat,
   Cloud,
+  AlertTriangle,
+  QrCode,
+  Copy
 } from 'lucide-react'
 
 // Util: formatar durações
@@ -46,6 +49,15 @@ function randomBuzzSentence() {
   return `Fogo ${pick()} com pipeline ${pick()} e tuning ${pick()} pronto em breve*`
 }
 
+// Expressões Farroupilha (rotativas)
+const farroupilhaPhrases = [
+  'Mas bah! Capaz que esse fogo não sai hoje.',
+  'Tri legal essa brasa… se existisse!',
+  'Quem é vivo sempre aparece, menos o isqueiro.',
+  'Bota um mate e espera, tchê.',
+  'Se o cometa ajudar, sai um churras campeiro.',
+]
+
 function Thermo({ value }: { value: number }) {
   return (
     <div className="w-full h-3 rounded-full bg-black/50 border border-white/10 overflow-hidden">
@@ -67,6 +79,73 @@ export default function ChurrasDoBonato2() {
   const [glitch, setGlitch] = useState(true)
   const [ctaDisabled, setCtaDisabled] = useState(true)
 
+  // Modo Farroupilha
+  const [farroupilha, setFarroupilha] = useState(false)
+  const proximo20Set = useMemo(() => {
+    const now = new Date()
+    const year = now.getMonth() > 8 || (now.getMonth()===8 && now.getDate()>20) ? now.getFullYear()+1 : now.getFullYear()
+    return new Date(`${year}-09-20T12:00:00`)
+  }, [])
+  const farroupilhaCountdown = useMemo(() => proximo20Set.getTime() - Date.now(), [proximo20Set])
+  const [farPhraseIdx, setFarPhraseIdx] = useState(0)
+  useEffect(() => {
+    if (!farroupilha) return
+    const id = setInterval(()=> setFarPhraseIdx(i => (i+1) % farroupilhaPhrases.length), 4000)
+    return () => clearInterval(id)
+  }, [farroupilha])
+
+  // Konami Code => Modo Cometa
+  const [modoCometa, setModoCometa] = useState(false)
+  useEffect(() => {
+    const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']
+    let i = 0
+    const onKey = (e: KeyboardEvent) => {
+      i = e.key === seq[i] ? i+1 : (e.key === seq[0] ? 1 : 0)
+      if (i === seq.length) {
+        i = 0
+        setModoCometa(true)
+        setTimeout(()=>setModoCometa(false), 1600)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // Melt effect when confirming churrasco
+  const [melt, setMelt] = useState(false)
+  const [toast, setToast] = useState<string|null>(null)
+  function showToast(msg:string){ setToast(msg); setTimeout(()=>setToast(null), 1800) }
+
+  // Pix do Bruxo modal
+  const [pixOpen, setPixOpen] = useState(false)
+  const [pixProgress, setPixProgress] = useState(0)
+  useEffect(() => {
+    if (!pixOpen) return
+    setPixProgress(0)
+    const id = setInterval(()=>{
+      setPixProgress(p => (p >= 99 ? 42 : p + 7))
+    }, 250)
+    return () => clearInterval(id)
+  }, [pixOpen])
+
+  // Convite Satírico modal
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteText, setInviteText] = useState('')
+  function genInvite() {
+    const dataImpossivel = 'sábado anterior, às 25:61'
+    const link = `churras.bonato/${Math.random().toString(36).slice(2,8)}`
+    const corpo = `Convite oficial do Churras do Bonato\n\nQuando: ${dataImpossivel}\nOnde: Casa do Bonato (se o cometa deixar)\nDress code: chinelo estratégico\nPromessa: o bruxo paga*\n\nRSVP: ${link}\n*pagamento sujeito à validação astral`
+    setInviteText(corpo)
+  }
+  async function copyInvite() {
+    try {
+      await navigator.clipboard.writeText(inviteText)
+      showToast('Convite copiado ✅')
+    } catch {
+      showToast('Não deu pra copiar 😅')
+    }
+  }
+
   useEffect(() => {
     const t = setTimeout(() => setGlitch(false), 1800)
     const t2 = setTimeout(() => setCtaDisabled(false), 2600)
@@ -76,61 +155,125 @@ export default function ChurrasDoBonato2() {
   useEffect(() => {
     const id = setInterval(() => {
       setTermometro((v) => {
-        let nv = v + (Math.random() * 1.4)
+        let nv = v + (Math.random() * (modoCometa ? 2.2 : 1.4))
         if (nv > 93) nv = 37 + Math.random() * 6
         return nv
       })
-    }, 1200)
+    }, modoCometa ? 800 : 1200)
     return () => clearInterval(id)
-  }, [])
+  }, [modoCometa])
 
   useEffect(() => {
-    const id = setInterval(() => setAiLine(randomBuzzSentence()), 5000)
+    const id = setInterval(() => setAiLine(randomBuzzSentence()), modoCometa ? 3000 : 5000)
     return () => clearInterval(id)
-  }, [])
+  }, [modoCometa])
 
   const cometETADate = new Date('2061-07-28T12:00:00')
-  const cometETAms = cometETADate.getTime() - new Date().getTime()
+  const cometETAms = cometETADate.getTime() - Date.now()
 
   function adicionarDesculpa() { setDesculpometro((n) => n + 1) }
   function darLance() { setLances((ls) => [...ls, Math.max(...ls) + (1 + Math.floor(Math.random() * 7))]) }
+  function confirmarChurras() {
+    setMelt(true)
+    showToast('Confirmado… no multiverso errado 😅')
+    setTimeout(()=>setMelt(false), 1400)
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-zinc-900 text-zinc-100">
+    <div className={
+      `min-h-screen text-zinc-100 overflow-x-hidden ` +
+      (farroupilha
+        ? 'bg-gradient-to-b from-emerald-950 to-amber-950'
+        : 'bg-gradient-to-b from-zinc-950 to-zinc-900')
+    }>
+      {/* global flash for modo cometa */}
+      <AnimatePresence>
+        {modoCometa && (
+          <motion.div
+            initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+            className="fixed inset-0 pointer-events-none"
+            style={{ mixBlendMode:'difference', background:'linear-gradient(45deg,#fff,#000)' }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{y:20,opacity:0}} animate={{y:0,opacity:1}} exit={{y:20,opacity:0}}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-amber-500 text-black font-semibold shadow z-50">
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Navbar */}
       <header className="sticky top-0 z-40 bg-black/40 backdrop-blur border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <motion.div initial={{ rotate: -15, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} className="p-2 rounded-xl bg-amber-500/10 ring-1 ring-amber-400/30">
-            <Flame className="w-5 h-5 text-amber-400"/>
+          <motion.div initial={{ rotate: -15, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} className={"p-2 rounded-xl ring-1 " + (farroupilha ? 'bg-emerald-500/10 ring-emerald-400/30' : 'bg-amber-500/10 ring-amber-400/30')}>
+            <Flame className={"w-5 h-5 " + (farroupilha ? 'text-emerald-300' : 'text-amber-400')}/>
           </motion.div>
           <div className="font-bold tracking-tight">Churras do Bonato — v2</div>
           <div className="ml-auto text-xs sm:text-sm text-zinc-300 flex items-center gap-4">
             <span className="inline-flex items-center gap-1"><Timer className="w-4 h-4"/> cometa: <span className="font-mono">{fmt(cometETAms)}</span></span>
             <span className="hidden sm:inline-flex items-center gap-1"><AlarmClockCheck className="w-4 h-4"/> churras: <span className="font-mono">aguardando acendimento</span></span>
+            <button onClick={()=>setFarroupilha(f=>!f)} className={"px-3 py-1 rounded-full text-xs font-semibold transition " + (farroupilha ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20')}>
+              {farroupilha ? 'Modo Farroupilha: ligado' : 'Modo Farroupilha'}
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
+      {/* Banner Farroupilha */}
+      {farroupilha && (
+        <div className="bg-emerald-900/40 border-b border-emerald-700/30">
+          <div className="max-w-6xl mx-auto px-4 py-2 text-sm flex items-center gap-2">
+            <CalendarClock className="w-4 h-4 text-emerald-300"/>
+            <span>Bah, vivente! Faltam <span className="font-mono">{fmt(farroupilhaCountdown)}</span> pra 20/09. {farroupilhaPhrases[farPhraseIdx]}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Hero (envolto pelo efeito melt) */}
+      <motion.section
+        className="relative overflow-hidden"
+        animate={melt ? { filter:'blur(6px)', y: 20, opacity: 0.7 } : { filter:'blur(0px)', y:0, opacity:1 }}
+        transition={{ type:'spring', stiffness: 140, damping: 18 }}
+      >
         <div className="max-w-6xl mx-auto px-4 py-14 sm:py-20">
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div>
               <h1 className={`text-4xl sm:text-5xl font-extrabold leading-tight ${glitch ? 'animate-pulse' : ''}`}>
-                O site que prova que <span className="text-amber-400">o cometa</span> chega antes da <span className="text-emerald-400">picanha</span>.
+                O site que prova que <span className={farroupilha ? 'text-emerald-300' : 'text-amber-400'}>o cometa</span> chega antes da <span className={farroupilha ? 'text-amber-300' : 'text-emerald-400'}>picanha</span>.
               </h1>
               <p className="mt-4 text-zinc-300 text-lg">
-                Aqui o bruxo promete que paga, a Revolução Farroupilha se repete, e a grelha entra em modo manutenção preventiva.
+                {farroupilha ? farroupilhaPhrases[farPhraseIdx] : 'Aqui o bruxo promete que paga, a Revolução Farroupilha se repete, e a grelha entra em modo manutenção preventiva.'}
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button disabled={ctaDisabled} onClick={adicionarDesculpa} className={`px-4 py-2 rounded-2xl font-semibold shadow transition ${ctaDisabled ? 'bg-zinc-800 text-zinc-500' : 'bg-amber-500 text-black hover:bg-amber-400'}`}>
+              <div className="mt-6 flex flex-wrap gap-3 items-start">
+                <button disabled={ctaDisabled} onClick={adicionarDesculpa} className={`px-4 py-2 rounded-2xl font-semibold shadow transition ${ctaDisabled ? 'bg-zinc-800 text-zinc-500' : (farroupilha ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'bg-amber-500 text-black hover:bg-amber-400')}`}>
                   Gerar nova desculpa
                 </button>
+
+                {/* Confirmar churrasco (melt + toast) */}
+                <button onClick={confirmarChurras} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
+                  Confirmar churrasco (beta)
+                </button>
+
+                {/* Pix do Bruxo */}
+                <button onClick={()=>setPixOpen(true)} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
+                  Pix do Bruxo
+                </button>
+
+                {/* Convite Satírico */}
+                <button onClick={()=>{ genInvite(); setInviteOpen(true); }} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
+                  Gerar convite satírico
+                </button>
+
                 <button onClick={darLance} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
                   Dar lance no carvão (R$)
                 </button>
               </div>
-              <div className="mt-4 text-sm text-zinc-400">* ‘Breve’ = depois do cometa, provavelmente.</div>
+              <div className="mt-4 text-sm text-zinc-400">* Dica: tente o <span className="font-mono">Konami Code</span> (↑↑↓↓←→←→BA).</div>
             </div>
 
             {/* Card de IA do fogo + termômetro */}
@@ -151,7 +294,55 @@ export default function ChurrasDoBonato2() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
+
+      {/* Modal Pix do Bruxo */}
+      <AnimatePresence>
+        {pixOpen && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+            <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className="w-[min(90vw,520px)] rounded-2xl border border-white/10 bg-zinc-900/90 p-5">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-zinc-100 flex items-center gap-2"><QrCode className="w-4 h-4"/> Pix do Bruxo</div>
+                <button className="text-zinc-400 hover:text-zinc-200" onClick={()=>setPixOpen(false)}>fechar</button>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-4 items-center">
+                <div className="aspect-square rounded-xl bg-black/30 border border-white/10 flex items-center justify-center">
+                  <div className="text-zinc-500 text-xs text-center px-3">QR místico aparece aqui quando o cometa der ok</div>
+                </div>
+                <div className="text-sm text-zinc-300 space-y-2">
+                  <div>O bruxo promete cobrir o maior lance e liberar o carvão premium.</div>
+                  <div className="text-xs text-zinc-400">Status da validação astral:</div>
+                  <div className="h-2 rounded-full bg-black/40 border border-white/10 overflow-hidden">
+                    <motion.div className="h-full bg-emerald-500" style={{ width: pixProgress + '%' }} />
+                  </div>
+                  <div className="text-xs text-zinc-500">({pixProgress}% — quando chega em 99%, reinicia por segurança cósmica)</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Convite Satírico */}
+      <AnimatePresence>
+        {inviteOpen && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+            <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className="w-[min(90vw,620px)] rounded-2xl border border-white/10 bg-zinc-900/90 p-5">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-zinc-100">Convite Satírico</div>
+                <button className="text-zinc-400 hover:text-zinc-200" onClick={()=>setInviteOpen(false)}>fechar</button>
+              </div>
+              <div className="mt-3 rounded-xl bg-black/30 border border-white/10 p-3">
+                <pre className="whitespace-pre-wrap text-sm text-zinc-200">{inviteText}</pre>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <button onClick={copyInvite} className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500 text-black font-semibold hover:bg-amber-400 transition"><Copy className="w-4 h-4"/> Copiar convite</button>
+                <button onClick={()=>{ genInvite(); }} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">Gerar outro</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Desculpômetro + feed */}
       <section className="max-w-6xl mx-auto px-4 pb-12">
@@ -197,6 +388,28 @@ export default function ChurrasDoBonato2() {
         </div>
       </section>
 
+      {/* Status Page */}
+      <section className="max-w-6xl mx-auto px-4 py-12">
+        <h2 className="text-2xl font-bold mb-4">Status do Churrasco</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">
+            <div className="flex items-center gap-2 text-zinc-300"><AlertTriangle className="w-5 h-5"/> Uptime da Churrasqueira</div>
+            <div className="mt-2 text-4xl font-extrabold tracking-tight">0.00%</div>
+            <div className="text-xs text-zinc-400">Últimas 24h — manutenção criativa</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">
+            <div className="flex items-center gap-2 text-zinc-300"><Timer className="w-5 h-5"/> Latência do Isqueiro</div>
+            <div className="mt-2 text-4xl font-extrabold tracking-tight">∞ ms</div>
+            <div className="text-xs text-zinc-400">SLO: acender antes do cometa</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">
+            <div className="flex items-center gap-2 text-zinc-300"><Siren classNameName="w-5 h-5"/> Incidente Aberto</div>
+            <div className="mt-2 text-4xl font-extrabold tracking-tight">P0</div>
+            <div className="text-xs text-zinc-400">Falta de carvão — equipe mobilizada* (*moralmente)</div>
+          </div>
+        </div>
+      </section>
+
       {/* Roadmap impossível */}
       <section className="max-w-6xl mx-auto px-4 py-12">
         <h2 className="text-2xl font-bold mb-4">Roadmap Impossível</h2>
@@ -230,9 +443,9 @@ export default function ChurrasDoBonato2() {
       {/* Rodapé */}
       <footer className="border-t border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row items-center gap-4">
-          <div className="text-zinc-400 text-sm">Se este site não acendeu o carvão. Próximo passo: convencer a ter churrasco.</div>
+          <div className="text-zinc-400 text-sm">Se este site não acendeu o carvão, ainda.</div>
           <div className="md:ml-auto flex items-center gap-3">
-            <button onClick={adicionarDesculpa} className="px-4 py-2 rounded-2xl bg-amber-500 text-black font-semibold hover:bg-amber-400 transition">Gerar mais desculpas</button>
+            <button onClick={()=>showToast('Desculpa enviada com sucesso ✅')} className={"px-4 py-2 rounded-2xl font-semibold transition " + (farroupilha ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'bg-amber-500 text-black hover:bg-amber-400')}>Gerar mais desculpas</button>
             <a href="#" className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition" onClick={(e) => e.preventDefault()}>Ver contrato do cometa</a>
           </div>
         </div>

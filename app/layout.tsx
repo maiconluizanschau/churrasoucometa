@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Churras do Time',
+  title: 'Churras Cade',
   description: 'O site que prova que o cometa chega antes da picanha.',
 }
 

@@ -1,4 +1,4 @@
-# Churras do time — Next.js (Tailwind + Framer Motion)
+# Churras do Bonato — Next.js (Tailwind + Framer Motion)
 
 Projeto pronto para rodar localmente.
 
@@ -24,3 +24,17 @@ npm start
 - tailwindcss, postcss, autoprefixer
 - framer-motion
 - lucide-react
+
+
+## Extras incluídos
+- Botão que foge (Acender agora)
+- Status Page com uptime/latência/incidente + post‑mortem
+- Modo Farroupilha com tema e contagem regressiva
+
+- Konami Code (Modo Cometa)
+- Efeito derretendo ao confirmar churrasco + toast
+- Modal Pix do Bruxo com 'validação astral' infinita
+- Removido o botão que fugia
+
+- Modo Farroupilha com frases rotativas
+- Gerador de Convite Satírico com copiar para a área de transferência
