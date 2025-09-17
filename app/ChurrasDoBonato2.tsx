@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flame,
   Beef,
-  Wand2,
   Siren,
   CalendarClock,
   Coins,
@@ -19,7 +18,8 @@ import {
   Cloud,
   AlertTriangle,
   QrCode,
-  Copy
+  Copy,
+  Trophy
 } from 'lucide-react'
 
 // Util: formatar durações
@@ -58,7 +58,44 @@ const farroupilhaPhrases = [
   'Se o cometa ajudar, sai um churras campeiro.',
 ]
 
-function Thermo({ value }: { value: number }) {
+// Confetti simples com emoji
+// Confetti simples com emoji (hook único, sem aninhar hooks)
+function ConfettiBurst({ run }: { run: boolean }) {
+  const [items, setItems] = useState<number[]>([])
+  useEffect(() => {
+    if (!run) return
+    const count = 40
+    setItems(Array.from({length: count}, (_,i)=>i))
+    const t = setTimeout(()=> setItems([]), 1600)
+    return () => clearTimeout(t)
+  }, [run])
+  const symbols = ['🪙','💸','🔥','🥩','🎉']
+  return (
+    <div className="pointer-events-none fixed inset-0 overflow-hidden z-50">
+      <AnimatePresence>
+        {items.map((i) => {
+          const x = Math.random()*100
+          const r = (Math.random()*2-1)*40
+          const sym = symbols[i % symbols.length]
+          return (
+            <motion.div
+              key={i}
+              initial={{ y: -20, x: `${x}vw`, rotate: r }}
+              animate={{ y: '110vh', rotate: r*3 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.6, ease: 'easeIn' }}
+              className="absolute text-2xl"
+            >
+              {sym}
+            </motion.div>
+          )
+        })}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+  function Thermo({ value }: { value: number }) {
   return (
     <div className="w-full h-3 rounded-full bg-black/50 border border-white/10 overflow-hidden">
       <motion.div
@@ -75,9 +112,17 @@ export default function ChurrasDoBonato2() {
   const [desculpometro, setDesculpometro] = useState(0)
   const [termometro, setTermometro] = useState(0.7)
   const [lances, setLances] = useState<number[]>([7, 12, 18])
-  const [aiLine, setAiLine] = useState(randomBuzzSentence())
+  const [aiLine, setAiLine] = useState('')
   const [glitch, setGlitch] = useState(true)
   const [ctaDisabled, setCtaDisabled] = useState(true)
+
+    // Client clock to avoid hydration mismatch
+    const [nowTs, setNowTs] = useState<number | null>(null)
+
+    // HYDRATION: seed aiLine on mount (avoid server/client mismatch)
+useEffect(() => {
+  if (!aiLine) setAiLine(randomBuzzSentence())
+}, [])
 
   // Modo Farroupilha
   const [farroupilha, setFarroupilha] = useState(false)
@@ -86,7 +131,7 @@ export default function ChurrasDoBonato2() {
     const year = now.getMonth() > 8 || (now.getMonth()===8 && now.getDate()>20) ? now.getFullYear()+1 : now.getFullYear()
     return new Date(`${year}-09-20T12:00:00`)
   }, [])
-  const farroupilhaCountdown = useMemo(() => proximo20Set.getTime() - Date.now(), [proximo20Set])
+  const farroupilhaCountdown = useMemo(() => (nowTs == null ? null : proximo20Set.getTime() - nowTs), [proximo20Set, nowTs])
   const [farPhraseIdx, setFarPhraseIdx] = useState(0)
   useEffect(() => {
     if (!farroupilha) return
@@ -111,7 +156,7 @@ export default function ChurrasDoBonato2() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Melt effect when confirming churrasco
+  // Melt effect + toasts
   const [melt, setMelt] = useState(false)
   const [toast, setToast] = useState<string|null>(null)
   function showToast(msg:string){ setToast(msg); setTimeout(()=>setToast(null), 1800) }
@@ -146,6 +191,51 @@ export default function ChurrasDoBonato2() {
     }
   }
 
+  // (Novo) Promessas do Bruxo
+  const [promessas, setPromessas] = useState(0)
+  const [achievements, setAchievements] = useState<{[k:string]: boolean}>({})
+  const [confettiRun, setConfettiRun] = useState(false)
+  const conquistas = [
+    { key: 'p1', label: 'Prometeu 1x', threshold: 1 },
+    { key: 'p5', label: 'Prometeu 5x', threshold: 5 },
+    { key: 'p10', label: 'Prometeu 10x', threshold: 10 },
+    { key: 'p20', label: 'Prometeu 20x', threshold: 20 },
+  ]
+
+  // carregar/salvar localStorage
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('promessas_bruxo')
+      const a = localStorage.getItem('achievements_bruxo')
+      if (p) setPromessas(parseInt(p,10)||0)
+      if (a) setAchievements(JSON.parse(a))
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem('promessas_bruxo', String(promessas)) } catch {}
+  }, [promessas])
+  useEffect(() => {
+    try { localStorage.setItem('achievements_bruxo', JSON.stringify(achievements)) } catch {}
+  }, [achievements])
+
+  function registrarPromessa() {
+    setPromessas(n => {
+      const novo = n+1
+      // verificar conquistas
+      const justUnlocked = conquistas.filter(c => !achievements[c.key] && novo >= c.threshold)
+      if (justUnlocked.length) {
+        const first = justUnlocked[0]
+        setAchievements(prev => ({ ...prev, [first.key]: true }))
+        showToast(`Conquista desbloqueada: ${first.label} 🏆`)
+        setConfettiRun(true)
+        setTimeout(()=>setConfettiRun(false), 1700)
+      } else {
+        showToast('Promessa registrada 💬')
+      }
+      return novo
+    })
+  }
+
   useEffect(() => {
     const t = setTimeout(() => setGlitch(false), 1800)
     const t2 = setTimeout(() => setCtaDisabled(false), 2600)
@@ -169,7 +259,7 @@ export default function ChurrasDoBonato2() {
   }, [modoCometa])
 
   const cometETADate = new Date('2061-07-28T12:00:00')
-  const cometETAms = cometETADate.getTime() - Date.now()
+    const cometETAms = nowTs == null ? null : cometETADate.getTime() - nowTs
 
   function adicionarDesculpa() { setDesculpometro((n) => n + 1) }
   function darLance() { setLances((ls) => [...ls, Math.max(...ls) + (1 + Math.floor(Math.random() * 7))]) }
@@ -186,6 +276,9 @@ export default function ChurrasDoBonato2() {
         ? 'bg-gradient-to-b from-emerald-950 to-amber-950'
         : 'bg-gradient-to-b from-zinc-950 to-zinc-900')
     }>
+      {/* Confetti */}
+      <ConfettiBurst run={confettiRun} />
+
       {/* global flash for modo cometa */}
       <AnimatePresence>
         {modoCometa && (
@@ -213,9 +306,9 @@ export default function ChurrasDoBonato2() {
           <motion.div initial={{ rotate: -15, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} className={"p-2 rounded-xl ring-1 " + (farroupilha ? 'bg-emerald-500/10 ring-emerald-400/30' : 'bg-amber-500/10 ring-amber-400/30')}>
             <Flame className={"w-5 h-5 " + (farroupilha ? 'text-emerald-300' : 'text-amber-400')}/>
           </motion.div>
-          <div className="font-bold tracking-tight">Churras do Bonato — v2</div>
+          <div className="font-bold tracking-tight">Churras</div>
           <div className="ml-auto text-xs sm:text-sm text-zinc-300 flex items-center gap-4">
-            <span className="inline-flex items-center gap-1"><Timer className="w-4 h-4"/> cometa: <span className="font-mono">{fmt(cometETAms)}</span></span>
+            <span className="inline-flex items-center gap-1"><Timer className="w-4 h-4"/> cometa: <span className="font-mono">{cometETAms == null ? "—" : fmt(cometETAms)}</span></span>
             <span className="hidden sm:inline-flex items-center gap-1"><AlarmClockCheck className="w-4 h-4"/> churras: <span className="font-mono">aguardando acendimento</span></span>
             <button onClick={()=>setFarroupilha(f=>!f)} className={"px-3 py-1 rounded-full text-xs font-semibold transition " + (farroupilha ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20')}>
               {farroupilha ? 'Modo Farroupilha: ligado' : 'Modo Farroupilha'}
@@ -229,7 +322,7 @@ export default function ChurrasDoBonato2() {
         <div className="bg-emerald-900/40 border-b border-emerald-700/30">
           <div className="max-w-6xl mx-auto px-4 py-2 text-sm flex items-center gap-2">
             <CalendarClock className="w-4 h-4 text-emerald-300"/>
-            <span>Bah, vivente! Faltam <span className="font-mono">{fmt(farroupilhaCountdown)}</span> pra 20/09. {farroupilhaPhrases[farPhraseIdx]}</span>
+            <span>Bah, vivente! Faltam <span className="font-mono">{farroupilhaCountdown == null ? "—" : fmt(farroupilhaCountdown)}</span> pra 20/09. {farroupilhaPhrases[farPhraseIdx]}</span>
           </div>
         </div>
       )}
@@ -267,10 +360,6 @@ export default function ChurrasDoBonato2() {
                 {/* Convite Satírico */}
                 <button onClick={()=>{ genInvite(); setInviteOpen(true); }} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
                   Gerar convite satírico
-                </button>
-
-                <button onClick={darLance} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
-                  Dar lance no carvão (R$)
                 </button>
               </div>
               <div className="mt-4 text-sm text-zinc-400">* Dica: tente o <span className="font-mono">Konami Code</span> (↑↑↓↓←→←→BA).</div>
@@ -403,9 +492,37 @@ export default function ChurrasDoBonato2() {
             <div className="text-xs text-zinc-400">SLO: acender antes do cometa</div>
           </div>
           <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">
-            <div className="flex items-center gap-2 text-zinc-300"><Siren classNameName="w-5 h-5"/> Incidente Aberto</div>
+            <div className="flex items-center gap-2 text-zinc-300"><Siren className="w-5 h-5"/> Incidente Aberto</div>
             <div className="mt-2 text-4xl font-extrabold tracking-tight">P0</div>
             <div className="text-xs text-zinc-400">Falta de carvão — equipe mobilizada* (*moralmente)</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Promessas do Bruxo (NOVO) */}
+      <section className="max-w-6xl mx-auto px-4 py-12">
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5"/> Promessas do Bruxo</h2>
+        <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">
+          <div className="flex items-center gap-3">
+            <div className="text-5xl font-extrabold tracking-tight">{promessas}</div>
+            <div className="text-sm text-zinc-400">promessas registradas</div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button onClick={registrarPromessa} className="px-4 py-2 rounded-2xl bg-amber-500 text-black font-semibold hover:bg-amber-400 transition">Prometer pagar</button>
+            <button onClick={()=>{ setPromessas(0); setAchievements({}); showToast('Contador zerado') }} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">Zerar contador</button>
+          </div>
+
+          {/* Badges */}
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {conquistas.map(c => {
+              const done = achievements[c.key] || false
+              return (
+                <div key={c.key} className={"rounded-2xl p-4 border " + (done ? 'bg-emerald-900/30 border-emerald-500/30' : 'bg-black/30 border-white/10')}>
+                  <div className="text-sm text-zinc-300">{c.label}</div>
+                  <div className={"mt-1 text-xs " + (done ? 'text-emerald-300' : 'text-zinc-500')}>{done ? 'Desbloqueada' : `Faltam ${Math.max(0, c.threshold - promessas)} promessas`}</div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -443,7 +560,7 @@ export default function ChurrasDoBonato2() {
       {/* Rodapé */}
       <footer className="border-t border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row items-center gap-4">
-          <div className="text-zinc-400 text-sm">Se este site não acendeu o carvão, ainda.</div>
+          <div className="text-zinc-400 text-sm">Se este site não acendeu o carvão, ao menos acendeu o riso. Próximo passo: convencer o Bonato.</div>
           <div className="md:ml-auto flex items-center gap-3">
             <button onClick={()=>showToast('Desculpa enviada com sucesso ✅')} className={"px-4 py-2 rounded-2xl font-semibold transition " + (farroupilha ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'bg-amber-500 text-black hover:bg-amber-400')}>Gerar mais desculpas</button>
             <a href="#" className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition" onClick={(e) => e.preventDefault()}>Ver contrato do cometa</a>
