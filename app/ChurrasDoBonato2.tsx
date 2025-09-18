@@ -547,7 +547,7 @@ useEffect(() => {
       {/* FAQ absurdo */}
       <section className="bg-gradient-to-b from-black to-zinc-950 border-t border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-12">
-          <h2 className="text-2xl font-bold mb-4">FAQ que ninguém pediu</h2>
+          <h2 className="text-2xl font-bold mb-4">FAQ</h2>
           <div className="space-y-3">
             <Faq q="O bruxo paga mesmo?" a="Paga sim, desde que o cometa valide no blockchain da churrasqueira." />
             <Faq q="Por que não acendeu ainda?" a="Estamos aguardando aprovação de mudança em janela de manutenção astronômica." />
