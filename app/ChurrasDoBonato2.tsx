@@ -349,7 +349,7 @@ useEffect(() => {
 
                 {/* Confirmar churrasco (melt + toast) */}
                 <button onClick={confirmarChurras} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
-                  Confirmar churrasco (beta)
+                  Confirmar churrasco
                 </button>
 
                 {/* Pix do Bruxo */}
@@ -560,7 +560,7 @@ useEffect(() => {
       {/* Rodapé */}
       <footer className="border-t border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row items-center gap-4">
-          <div className="text-zinc-400 text-sm">Se este site não acendeu o carvão, ao menos acendeu o riso. Próximo passo: convencer o Bonato.</div>
+          <div className="text-zinc-400 text-sm">Se este site não acendeu o carvão, ainda.</div>
           <div className="md:ml-auto flex items-center gap-3">
             <button onClick={()=>showToast('Desculpa enviada com sucesso ✅')} className={"px-4 py-2 rounded-2xl font-semibold transition " + (farroupilha ? 'bg-emerald-500 text-black hover:bg-emerald-400' : 'bg-amber-500 text-black hover:bg-amber-400')}>Gerar mais desculpas</button>
             <a href="#" className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition" onClick={(e) => e.preventDefault()}>Ver contrato do cometa</a>
