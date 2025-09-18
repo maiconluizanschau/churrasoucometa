@@ -368,7 +368,7 @@ useEffect(() => {
             {/* Card de IA do fogo + termômetro */}
             <div>
               <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-4 shadow-inner">
-                <div className="flex items-center gap-2 text-zinc-300 text-sm"><Zap className="w-4 h-4"/> Fogo.AI™</div>
+                <div className="flex items-center gap-2 text-zinc-300 text-sm"><Zap className="w-4 h-4"/> Fogo.</div>
                 <div className="mt-2 text-xl font-bold">{aiLine}</div>
                 <div className="mt-4 flex items-center gap-3">
                   <Beef className="w-6 h-6 text-rose-300"/>
