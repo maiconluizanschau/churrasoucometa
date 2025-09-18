@@ -33,10 +33,9 @@ npm start
 
 - Konami Code (Modo Cometa)
 - Efeito derretendo ao confirmar churrasco + toast
-- Modal Pix do Bruxo com 'validação astral' infinita
-- Removido o botão que fugia
+- Modal Pix  com 'validação astral' infinita
 
 - Modo Farroupilha com frases rotativas
 - Gerador de Convite Satírico com copiar para a área de transferência
 
-- Promessas do Bruxo: contador com conquistas (1/5/10/20) e confete; persistência em localStorage
+- Promessas: contador com conquistas (1/5/10/20) e confete; persistência em localStorage
