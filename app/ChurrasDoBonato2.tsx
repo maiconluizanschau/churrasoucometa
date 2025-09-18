@@ -161,7 +161,7 @@ useEffect(() => {
   const [toast, setToast] = useState<string|null>(null)
   function showToast(msg:string){ setToast(msg); setTimeout(()=>setToast(null), 1800) }
 
-  // Pix do Bruxo modal
+  // Pix modal
   const [pixOpen, setPixOpen] = useState(false)
   const [pixProgress, setPixProgress] = useState(0)
   useEffect(() => {
@@ -191,7 +191,7 @@ useEffect(() => {
     }
   }
 
-  // (Novo) Promessas do Bruxo
+  // (Novo) Promessas
   const [promessas, setPromessas] = useState(0)
   const [achievements, setAchievements] = useState<{[k:string]: boolean}>({})
   const [confettiRun, setConfettiRun] = useState(false)
@@ -352,7 +352,7 @@ useEffect(() => {
                   Confirmar churrasco
                 </button>
 
-                {/* Pix do Bruxo */}
+                {/* Pix */}
                 <button onClick={()=>setPixOpen(true)} className="px-4 py-2 rounded-2xl bg-zinc-800 ring-1 ring-white/10 hover:ring-white/20 transition">
                   Pix do Bruxo
                 </button>
@@ -385,7 +385,7 @@ useEffect(() => {
         </div>
       </motion.section>
 
-      {/* Modal Pix do Bruxo */}
+      {/* Modal Pix */}
       <AnimatePresence>
         {pixOpen && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
@@ -499,7 +499,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Promessas do Bruxo (NOVO) */}
+      {/* Promessas (NOVO) */}
       <section className="max-w-6xl mx-auto px-4 py-12">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Trophy className="w-5 h-5"/> Promessas do Bruxo</h2>
         <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">

@@ -27,7 +27,6 @@ npm start
 
 
 ## Extras incluídos
-- Botão que foge (Acender agora)
 - Status Page com uptime/latência/incidente + post‑mortem
 - Modo Farroupilha com tema e contagem regressiva
 
